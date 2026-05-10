@@ -1,75 +1,74 @@
-# React + TypeScript + Vite
+# Tally
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Track events, not streaks. A minimalist habit tracker built to help you monitor patterns without the pressure of maintaining gamified streaks.
 
-Currently, two official plugins are available:
+## Screenshots
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+<div align="center">
+  <img src="./screenshots/main-screen.png" alt="Dashboard" width="300" />
+  <img src="./screenshots/add-event.png" alt="Themes" width="300" />
+  <img src="./screenshots/manage-events.png" alt="Settings" width="300" />
+  <img src="./screenshots/month-view.png" alt="Chart" width="300" />
+  <img src="./screenshots/theme-switch.png" alt="Add Event" width="300" />
+</div>
 
-## React Compiler
+## Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- Event Tracking: Log specific events with custom types and colors. Define what matters to you, whether it's a relapse, a workout, or a simple check-in.
 
-Note: This will impact Vite dev & build performances.
+- Visual Analytics: View your data through interactive charts that break down trends by day, week, month, or year.
 
-## Expanding the ESLint configuration
+- Health Score: A unified score (0-100) calculated from your daily rate. It focuses on your current velocity rather than long-term averages.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Custom Themes: 5 pastel themes (Sage Mist, Sky Wash, Lavender Haze, Blush Pink, Warm Sand) built using CSS variables and next-themes for instant switching.
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+- Local Storage: Your data stays in your browser. No account or sign-up required.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- PWA Support: Install it on your phone for a native app experience.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+## Tech Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- React 19 & TypeScript
+- Vite
+- Zustand (with persistence)
+- Tailwind CSS V4
+- shadcn/ui
+- next-themes
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+## Logic & Calculations
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+### Health Score
+The score calculates your "running average" across different timeframes (Week, Month, Year). It gives more weight to recent behavior to reflect your current pace accurately.
+
+- 100: Perfect (0 events)
+- 80-99: Excellent
+- 50-79: Good
+- 0-49: Critical
+
+### Rates
+The app displays rates (per day, per week, per month) based on the time elapsed in the current period. This helps you visualize the intensity of your current habits immediately.
+
+## Contributing
+
+### Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/tally.git
+   cd tally
+   ```
+
+2. Install dependencies
+   ```bash
+   pnpm install
+   ```
+
+3. Start the development server
+   ```bash
+   pnpm dev
+   ```
+
+4. Open [http://localhost:5173](http://localhost:5173) to view the app.
+
+### Themes
+Themes are defined via CSS classes in `globals.css`. To add a new theme, define a new class (e.g., `.theme-midnight`) with the necessary CSS variables (`--background`, `--foreground`, etc.) and add it to the `THEMES` array in `configs.ts`.
