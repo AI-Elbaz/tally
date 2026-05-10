@@ -1,0 +1,17 @@
+{
+  "name": "Tally",
+  "short_name": "Tally",
+  "description": "Track events without streaks. Focus on your life.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg", 
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
