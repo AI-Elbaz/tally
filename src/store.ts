@@ -1,6 +1,6 @@
 import {create} from "zustand";
 import {persist} from "zustand/middleware";
-import type {Event} from "./types";
+import type {Event, EventType} from "./types";
 
 const DEFAULT_EVENT_TYPES = [
   {id: "1", label: "Withdrawal", color: "#eab308"}, // Yellow
@@ -12,10 +12,8 @@ type Store = {
   addEvent: (event: Pick<Event, "type" | "datetime" | "description">) => void;
   removeEvent: (id: string) => void;
   getEvents: () => Event[];
-  eventTypes: typeof DEFAULT_EVENT_TYPES;
-  addEventType: (
-    type: Omit<(typeof DEFAULT_EVENT_TYPES)[number], "id">,
-  ) => void;
+  eventTypes: EventType[];
+  addEventType: (type: Pick<EventType, "label" | "color">) => void;
   removeEventType: (id: string) => void;
 };
 

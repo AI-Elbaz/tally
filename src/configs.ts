@@ -14,9 +14,11 @@ import {
 } from "date-fns";
 import {now} from "./utils";
 
+export type PeriodKey = "daily" | "weekly" | "monthly" | "yearly";
+
 export const PERIODS = [
   {
-    key: "daily",
+    key: "daily" as const,
     label: "Today",
     current: () => ({start: startOfDay(now()), end: endOfDay(now())}),
     previous: () => ({
@@ -25,7 +27,7 @@ export const PERIODS = [
     }),
   },
   {
-    key: "weekly",
+    key: "weekly" as const,
     label: "This week",
     current: () => ({
       start: startOfWeek(now(), {weekStartsOn: 1}),
@@ -37,7 +39,7 @@ export const PERIODS = [
     }),
   },
   {
-    key: "monthly",
+    key: "monthly" as const,
     label: "This month",
     current: () => ({start: startOfMonth(now()), end: endOfMonth(now())}),
     previous: () => ({
@@ -46,7 +48,7 @@ export const PERIODS = [
     }),
   },
   {
-    key: "yearly",
+    key: "yearly" as const,
     label: "This year",
     current: () => ({start: startOfYear(now()), end: endOfYear(now())}),
     previous: () => ({

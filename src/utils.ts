@@ -1,5 +1,5 @@
 import {isWithinInterval, parseISO, startOfYear} from "date-fns";
-import type {Event, OverallHealth, TickerMetrics} from "./types";
+import type {Event, OverallHealth, Ticker, TickerMetrics} from "./types";
 
 export function calculateTickerMetrics(
   current: number,
@@ -20,7 +20,7 @@ export function calculateTickerMetrics(
   const rates: string[] = [];
   const now = new Date();
   const labelLower = label.toLowerCase();
-  let divisor = 1;
+  let divisor;
 
   if (labelLower.includes("week")) divisor = Math.max(1, now.getDay() || 7);
   else if (labelLower.includes("month")) divisor = Math.max(1, now.getDate());
@@ -53,14 +53,14 @@ export function calculateTickerMetrics(
   return {diff, pct, isUp, isDown, isFlat, rates};
 }
 
-export function calculateOverallHealth(tickers: any[]): OverallHealth {
+export function calculateOverallHealth(tickers: Ticker[]): OverallHealth {
   let totalDailyRate = 0;
   let count = 0;
 
   tickers.forEach(ticker => {
     const {current, label} = ticker;
     const now = new Date();
-    let divisor = 1;
+    let divisor;
     const labelLower = label.toLowerCase();
 
     if (labelLower.includes("week")) divisor = Math.max(1, now.getDay() || 7);
@@ -90,9 +90,9 @@ export function calculateOverallHealth(tickers: any[]): OverallHealth {
   // 1.0 = 50
   // 2.0 = 0
 
-  let score = 0;
-  let color = "text-emerald-500";
-  let label = "Perfect";
+  let score;
+  let color;
+  let label;
 
   if (averageDailyRate === 0) {
     score = 100;

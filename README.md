@@ -38,6 +38,7 @@ Track events, not streaks. A minimalist habit tracker built to help you monitor 
 ## Logic & Calculations
 
 ### Health Score
+
 The score calculates your "running average" across different timeframes (Week, Month, Year). It gives more weight to recent behavior to reflect your current pace accurately.
 
 - 100: Perfect (0 events)
@@ -46,6 +47,7 @@ The score calculates your "running average" across different timeframes (Week, M
 - 0-49: Critical
 
 ### Rates
+
 The app displays rates (per day, per week, per month) based on the time elapsed in the current period. This helps you visualize the intensity of your current habits immediately.
 
 ## Contributing
@@ -53,17 +55,20 @@ The app displays rates (per day, per week, per month) based on the time elapsed 
 ### Installation
 
 1. Clone the repository
+
    ```bash
    git clone https://github.com/yourusername/tally.git
    cd tally
    ```
 
 2. Install dependencies
+
    ```bash
    pnpm install
    ```
 
 3. Start the development server
+
    ```bash
    pnpm dev
    ```
@@ -71,4 +76,5 @@ The app displays rates (per day, per week, per month) based on the time elapsed 
 4. Open [http://localhost:5173](http://localhost:5173) to view the app.
 
 ### Themes
+
 Themes are defined via CSS classes in `globals.css`. To add a new theme, define a new class (e.g., `.theme-midnight`) with the necessary CSS variables (`--background`, `--foreground`, etc.) and add it to the `THEMES` array in `configs.ts`.

@@ -1,8 +1,16 @@
+import type {PeriodKey} from "./configs";
+
 export type Ticker = {
-  key: string;
+  key: PeriodKey;
   label: string;
   current: number;
   previous: number;
+};
+
+export type EventType = {
+  id: string;
+  label: string;
+  color: string;
 };
 
 export type Event = {

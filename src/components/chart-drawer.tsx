@@ -22,12 +22,14 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  type TooltipProps,
+  type TooltipContentProps,
 } from "recharts";
+
 import type {
   NameType,
   ValueType,
 } from "recharts/types/component/DefaultTooltipContent";
+
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart";
 import {AspectRatio} from "@/components/ui/aspect-ratio";
 import {useStore} from "../store";
@@ -38,6 +40,8 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "./ui/drawer";
+import type {EventType} from "@/types";
+import type {PeriodKey} from "@/configs";
 
 const PERIOD_CONFIG = {
   daily: {
@@ -103,11 +107,10 @@ const PERIOD_CONFIG = {
   },
 };
 
-// Custom Tooltip Content
 const CustomTooltipContent = ({
   active,
   payload,
-}: TooltipProps<ValueType, NameType>) => {
+}: TooltipContentProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
@@ -115,7 +118,7 @@ const CustomTooltipContent = ({
           {payload[0]?.payload?.label}
         </p>
         <div className="space-y-1.5">
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index) => (
             <div
               key={index}
               className="flex items-center justify-between gap-4 text-xs">
@@ -144,17 +147,15 @@ function ChartContent({
   chartData,
   eventTypes,
 }: {
-  chartData: any[];
-  eventTypes: any[];
+  chartData: Record<string, string | number>[];
+  eventTypes: EventType[];
 }) {
-  // DYNAMIC CHART CONFIG
   const chartConfig = Object.fromEntries(
     eventTypes.map(t => [
       t.id,
       {
         label: t.label,
         color: t.color,
-        icon: "circle",
       },
     ]),
   );
@@ -188,12 +189,12 @@ function ChartContent({
             />
             <ChartTooltip
               cursor={{fill: "hsl(var(--muted))", fillOpacity: 0.3}}
-              content={<CustomTooltipContent />}
+              content={CustomTooltipContent}
             />
             {eventTypes.map((t, i) => (
               <Bar
                 key={t.id}
-                name={t.label} // Explicitly set the name for the legend/tooltip
+                name={t.label}
                 dataKey={t.id}
                 stackId="a"
                 fill={`var(--color-${t.id})`}
@@ -214,24 +215,23 @@ export function ChartDrawer({
   period,
   children,
 }: {
-  period: string;
+  period: PeriodKey;
   children: React.ReactNode;
 }) {
   const events = useStore(s => s.events);
-  const eventTypes = useStore(s => s.eventTypes); // Fetch dynamic types
+  const eventTypes = useStore(s => s.eventTypes);
   const config = PERIOD_CONFIG[period];
 
   const chartData = useMemo(() => {
     if (!config) return [];
     return config.getBuckets().map(bucket => {
-      const row = {label: bucket.label};
+      const row: Record<string, string | number> = {label: bucket.label};
 
-      // Map over dynamic eventTypes, not hardcoded EVENT_TYPES
       eventTypes.forEach(t => {
         row[t.id] = events.filter(e => {
           try {
             return (
-              e.type === t.id && // Match against dynamic ID
+              e.type === t.id &&
               isWithinInterval(parseISO(e.datetime), {
                 start: bucket.start,
                 end: bucket.end,
