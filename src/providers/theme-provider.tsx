@@ -1,5 +1,6 @@
 "use client";
 
+import {THEMES} from "@/configs";
 import {ThemeProvider as NextThemesProvider} from "next-themes";
 
 export function ThemeProvider({children}: {children: React.ReactNode}) {
@@ -9,14 +10,7 @@ export function ThemeProvider({children}: {children: React.ReactNode}) {
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
-      themes={[
-        "theme-default",
-        "theme-sage",
-        "theme-sky",
-        "theme-lavender",
-        "theme-blush",
-        "theme-sand",
-      ]}>
+      themes={THEMES.map(theme => theme.id)}>
       {children}
     </NextThemesProvider>
   );

@@ -61,7 +61,7 @@ export const THEMES = [
     id: "default",
     name: "System Default",
     description: "Follows system preference",
-    previewBg: "#ffffff", // Just for the drawer chip
+    previewBg: "#ffffff",
     previewFg: "#09090b",
   },
   {

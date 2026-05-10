@@ -9,15 +9,13 @@ import {
 import {Check, Palette} from "lucide-react";
 import {THEMES} from "@/configs";
 import {Button} from "./ui/button";
-import {useState} from "react";
 import {useTheme} from "next-themes";
 
 export function ThemeDrawer() {
-  const [open, setOpen] = useState(false);
   const {theme, setTheme} = useTheme();
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer>
       <DrawerTrigger asChild>
         <Button
           variant="outline"

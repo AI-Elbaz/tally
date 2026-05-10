@@ -71,7 +71,7 @@ export function AddEventDrawer() {
               value={type}
               onValueChange={setType}
               disabled={eventTypes.length === 0}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -123,18 +123,14 @@ export function AddEventDrawer() {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-border flex gap-2">
-          <DrawerClose asChild>
-            <Button variant="outline" className="flex-1">
-              Cancel
-            </Button>
-          </DrawerClose>
+        <div className="p-4 flex">
           <DrawerClose asChild>
             <Button
               onClick={handleSubmit}
+              size="lg"
               className="flex-1"
               disabled={eventTypes.length === 0}>
-              <Plus size={16} className="mr-2" />
+              <Plus />
               Log event
             </Button>
           </DrawerClose>

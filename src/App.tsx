@@ -25,7 +25,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
-      <div className="flex flex-col mx-auto w-full justify-between gap-10 max-w-5xl px-4 sm:px-6 lg:px-8 pt-12 pb-12">
+      <div className="flex flex-col mx-auto w-full justify-between gap-10 max-w-4xl px-4 sm:px-6 lg:px-8 pt-12 pb-12">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Tally</h1>
@@ -55,7 +55,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-3 justify-center items-center">
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 justify-center items-center w-full h-full">
           {tickers.map(t => (
             <TickerCard key={t.key} ticker={t} />
           ))}

@@ -3,7 +3,7 @@ import {Card, CardContent} from "@/components/ui/card";
 import type {Ticker} from "@/types";
 import {ChartDrawer} from "./chart-drawer";
 import {calculateTickerMetrics, getRateExplanation} from "@/utils";
-import {Tooltip, TooltipTrigger, TooltipContent} from "./ui/tooltip";
+import {Tooltip, TooltipTrigger, TooltipContent} from "@/components/ui/tooltip";
 import {cn} from "@/lib/utils";
 
 export function TickerCard({ticker}: {ticker: Ticker}) {
@@ -16,50 +16,60 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
 
   return (
     <ChartDrawer period={key}>
-      <Card className="cursor-pointer active:scale-[0.98] transition-all duration-200 select-none size-full border-border/50 hover:border-foreground/20 relative overflow-hidden">
-        <CardContent className="h-full w-full relative group flex flex-col justify-between">
-          <div className="flex justify-between gap-3 items-start w-full">
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-              {label}
-            </p>
-            <div className="flex items-center gap-1.5">
-              {isFlat && <Minus size={14} className="text-muted-foreground" />}
-              {isUp && <TrendingUp size={14} className="text-destructive" />}
-              {isDown && (
-                <TrendingDown size={14} className="text-emerald-500" />
-              )}
-              <span
-                className={cn(
-                  "text-sm font-semibold",
-                  isFlat
-                    ? "text-muted-foreground"
-                    : isUp
-                      ? "text-destructive"
-                      : "text-emerald-500",
-                )}>
-                {isFlat
-                  ? "100% of last period"
-                  : `${isUp ? "+" : ""}${diff} (${isUp ? "+" : ""}${pct}%)`}
-              </span>
+      <Card className="py-2 px-1 cursor-pointer active:scale-[0.98] transition-all duration-200 select-none w-full h-full border-border/50 hover:border-foreground/20 relative overflow-hidden">
+        <CardContent className="p-0 h-full w-full relative group flex flex-col justify-between">
+          {/* Top Section */}
+          <div className="px-4 sm:px-5 py-3 sm:py-4 w-full">
+            <div className="flex justify-between items-start w-full gap-2">
+              <p className="text-[10px] sm:text-sm font-bold text-muted-foreground uppercase tracking-wider leading-tight">
+                {label}
+              </p>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {isFlat && (
+                  <Minus size={12} className="text-muted-foreground" />
+                )}
+                {isUp && <TrendingUp size={12} className="text-destructive" />}
+                {isDown && (
+                  <TrendingDown size={12} className="text-emerald-500" />
+                )}
+
+                <span
+                  className={cn(
+                    "text-[10px] sm:text-sm font-semibold tabular-nums leading-none",
+                    isFlat
+                      ? "text-muted-foreground"
+                      : isUp
+                        ? "text-destructive"
+                        : "text-emerald-500",
+                  )}>
+                  {isFlat ? "100%" : `${isUp ? "+" : ""}${diff} (${pct}%)`}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="flex-1 flex min-h-30 items-center justify-center">
-            <p className="text-5xl sm:text-7xl font-bold tabular-nums tracking-tight text-foreground leading-none">
+
+          {/* Middle Section */}
+          <div className="flex items-center justify-center px-4">
+            <p className="text-5xl sm:text-6xl font-bold tabular-nums tracking-tight text-foreground leading-none">
               {current}
             </p>
           </div>
-          <div className="flex justify-center items-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-medium tabular-nums">
+
+          {/* Bottom Section */}
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex-wrap w-full flex justify-center items-center gap-3 text-[9px] sm:text-[10px] font-medium tabular-nums">
             {rates.map((rate, i) => (
               <Tooltip key={i}>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 cursor-help border-b border-dotted border-muted-foreground/30 hover:border-foreground/50 transition-colors">
-                    <Activity size={11} className="text-muted-foreground" />
+                  <div className="flex items-center gap-1.5 cursor-help border-b border-dotted border-muted-foreground/30 hover:border-foreground/50 transition-colors shrink-0">
+                    <Activity size={10} className="text-muted-foreground" />
                     <span
-                      className={
+                      className={cn(
+                        "leading-none",
                         i > 0
                           ? "opacity-80 text-muted-foreground"
-                          : "text-foreground"
-                      }>
+                          : "text-foreground",
+                      )}>
                       {rate}
                     </span>
                   </div>
