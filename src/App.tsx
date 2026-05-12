@@ -7,6 +7,7 @@ import {PERIODS} from "./configs";
 import {calculateOverallHealth, countInRange} from "./utils";
 import {ManageEventsDrawer} from "./components/manage-events-drawer";
 import {AddEventDrawer} from "./components/add-event-drawer";
+import {EventsLogDrawer} from "./components/events-log-drawer";
 
 export default function App() {
   const events = useStore(s => s.events);
@@ -25,15 +26,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
-      <div className="flex flex-col mx-auto w-full justify-between gap-10 max-w-4xl px-4 sm:px-6 lg:px-8 pt-12 pb-12">
+      <div className="flex flex-col mx-auto w-full justify-between gap-5 sm:gap-10 max-w-4xl p-2.5 sm:p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Tally</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+              Tally
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Track events, not streaks.
             </p>
           </div>
           <div className="flex gap-2">
+            <EventsLogDrawer />
             <ManageEventsDrawer />
             <ThemeDrawer />
           </div>
@@ -46,7 +50,7 @@ export default function App() {
           </div>
           <div className="flex items-baseline justify-center gap-1.5 tabular-nums">
             <span
-              className={`text-7xl sm:text-8xl font-bold tracking-tighter leading-none ${health.color}`}>
+              className={`text-6xl sm:text-8xl font-bold tracking-tighter leading-none ${health.color}`}>
               {health.score}
             </span>
             <span className="text-muted-foreground/50 text-xl font-medium">
@@ -55,7 +59,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 justify-center items-center w-full h-full">
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-1.5 md:gap-3 justify-center items-center w-full h-full">
           {tickers.map(t => (
             <TickerCard key={t.key} ticker={t} />
           ))}

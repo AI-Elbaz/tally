@@ -46,7 +46,7 @@ export function ManageEventsDrawer() {
         </Button>
       </DrawerTrigger>
 
-      <DrawerContent className="max-w-md mx-auto">
+      <DrawerContent className="max-w-md mx-auto flex flex-col max-h-[80vh]">
         <DrawerHeader>
           <DrawerTitle>Manage Event Types</DrawerTitle>
           <p className="text-sm text-muted-foreground">
@@ -54,7 +54,7 @@ export function ManageEventsDrawer() {
           </p>
         </DrawerHeader>
 
-        <div className="p-4 flex flex-col gap-6">
+        <div className="overflow-y-auto flex-1 px-4 pb-4 flex flex-col gap-6">
           {/* Add New Type */}
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -95,7 +95,7 @@ export function ManageEventsDrawer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Current Types
             </h3>
-            <div className="flex flex-col gap-2 max-h-[40vh] overflow-y-auto">
+            <div className="flex flex-col gap-2">
               {eventTypes.map(type => (
                 <div
                   key={type.id}
