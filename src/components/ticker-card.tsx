@@ -16,7 +16,7 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
 
   return (
     <ChartDrawer period={key}>
-      <Card className="py-2 px-1 cursor-pointer active:scale-[0.98] transition-all duration-200 select-none w-full h-full border-border/50 hover:border-foreground/20 relative overflow-hidden">
+      <Card className="aspect-square py-2 px-1 cursor-pointer active:scale-[0.98] transition-all duration-200 select-none w-full border-border/50 hover:border-foreground/20 relative overflow-hidden">
         <CardContent className="p-0 h-full w-full relative group flex flex-col gap-4 justify-between">
           {/* Top Section */}
           <div className="px-4 sm:px-5 py-3 sm:py-4 w-full">

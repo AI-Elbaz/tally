@@ -115,10 +115,10 @@ export function EventsLogDrawer() {
       <DrawerTrigger asChild>
         <Button
           variant="outline"
-          size="icon"
+          size="icon-lg"
           className="rounded-xl"
           aria-label="View all events">
-          <Calendar size={16} />
+          <Calendar />
         </Button>
       </DrawerTrigger>
 

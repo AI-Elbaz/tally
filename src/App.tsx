@@ -8,6 +8,7 @@ import {calculateOverallHealth, countInRange} from "./utils";
 import {ManageEventsDrawer} from "./components/manage-events-drawer";
 import {AddEventDrawer} from "./components/add-event-drawer";
 import {EventsLogDrawer} from "./components/events-log-drawer";
+import {cn} from "./lib/utils";
 
 export default function App() {
   const events = useStore(s => s.events);
@@ -25,48 +26,47 @@ export default function App() {
   const health = useMemo(() => calculateOverallHealth(tickers), [tickers]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
-      <div className="flex flex-col mx-auto w-full justify-between gap-5 sm:gap-10 max-w-4xl p-2.5 sm:p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-              Tally
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Track events, not streaks.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <EventsLogDrawer />
-            <ManageEventsDrawer />
-            <ThemeDrawer />
-          </div>
+    <div className="h-screen flex flex-col max-w-2xl mx-auto w-full justify-between gap-5 px-2.5 pb-8 sm:px-5">
+      <div className="flex items-end justify-between bg-card p-3 rounded-b-3xl">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Tally</h1>
+          <p className="text-xs sm:text-sm leading-3 text-muted-foreground">
+            Track events, not streaks.
+          </p>
         </div>
-
-        <div className="flex flex-col items-center justify-center text-center">
-          <div
-            className={`mb-3 px-3 py-1 rounded-full border border-current bg-muted/30 text-[10px] font-bold uppercase tracking-[0.2em] ${health.color}`}>
-            {health.label}
-          </div>
-          <div className="flex items-baseline justify-center gap-1.5 tabular-nums">
-            <span
-              className={`text-6xl sm:text-8xl font-bold tracking-tighter leading-none ${health.color}`}>
-              {health.score}
-            </span>
-            <span className="text-muted-foreground/50 text-xl font-medium">
-              /100
-            </span>
-          </div>
+        <div className="flex gap-2">
+          <EventsLogDrawer />
+          <ManageEventsDrawer />
+          <ThemeDrawer />
         </div>
-
-        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-1.5 md:gap-3 justify-center items-center w-full h-full">
-          {tickers.map(t => (
-            <TickerCard key={t.key} ticker={t} />
-          ))}
-        </div>
-
-        <AddEventDrawer />
       </div>
+
+      <div className="flex flex-col items-center justify-center text-center">
+        <div
+          className={cn(
+            "mb-1 px-3 py-1 rounded-full border-2 border-current bg-muted/30 text-[10px] font-bold uppercase tracking-[0.2em]",
+            health.color,
+          )}>
+          {health.label}
+        </div>
+        <div className="flex items-baseline justify-center gap-1.5 tabular-nums">
+          <span
+            className={`text-6xl sm:text-7xl font-bold tracking-tighter leading-none ${health.color}`}>
+            {health.score}
+          </span>
+          <span className="text-muted-foreground/50 text-xl font-medium">
+            /100
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-1.5 md:gap-3">
+        {tickers.map(t => (
+          <TickerCard key={t.key} ticker={t} />
+        ))}
+      </div>
+
+      <AddEventDrawer />
     </div>
   );
 }

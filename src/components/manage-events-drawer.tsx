@@ -39,10 +39,10 @@ export function ManageEventsDrawer() {
       <DrawerTrigger asChild>
         <Button
           variant="outline"
-          size="icon"
+          size="icon-lg"
           className="rounded-xl"
           aria-label="Manage Event Types">
-          <Settings size={16} />
+          <Settings />
         </Button>
       </DrawerTrigger>
 
