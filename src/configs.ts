@@ -30,12 +30,12 @@ export const PERIODS = [
     key: "weekly" as const,
     label: "This week",
     current: () => ({
-      start: startOfWeek(now(), {weekStartsOn: 1}),
-      end: endOfWeek(now(), {weekStartsOn: 1}),
+      start: startOfWeek(now(), {weekStartsOn: 6}),
+      end: endOfWeek(now(), {weekStartsOn: 6}),
     }),
     previous: () => ({
-      start: startOfWeek(subWeeks(now(), 1), {weekStartsOn: 1}),
-      end: endOfWeek(subWeeks(now(), 1), {weekStartsOn: 1}),
+      start: startOfWeek(subWeeks(now(), 1), {weekStartsOn: 6}),
+      end: endOfWeek(subWeeks(now(), 1), {weekStartsOn: 6}),
     }),
   },
   {

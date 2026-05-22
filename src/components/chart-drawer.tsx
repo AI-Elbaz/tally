@@ -66,11 +66,11 @@ const PERIOD_CONFIG = {
       const today = new Date();
       return Array.from({length: 12}, (_, i) => {
         const week = subWeeks(today, 11 - i);
-        const start = startOfWeek(week, {weekStartsOn: 1});
+        const start = startOfWeek(week, {weekStartsOn: 6});
         return {
           label: format(start, "MMM d"),
           start,
-          end: endOfWeek(week, {weekStartsOn: 1}),
+          end: endOfWeek(week, {weekStartsOn: 6}),
         };
       });
     },
