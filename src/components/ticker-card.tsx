@@ -19,7 +19,7 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
       <Card className="aspect-square py-2 px-1 cursor-pointer active:scale-[0.98] transition-all duration-200 select-none w-full border-border/50 hover:border-foreground/20 relative overflow-hidden">
         <CardContent className="p-0 h-full w-full relative group flex flex-col gap-4 justify-between">
           {/* Top Section */}
-          <div className="px-4 sm:px-5 py-3 sm:py-4 w-full">
+          <div className="px-3 sm:px-5 py-2 sm:py-4 w-full">
             <div className="flex justify-between items-start w-full gap-2">
               <p className="text-[8px] sm:text-sm font-bold text-muted-foreground uppercase tracking-wider leading-tight">
                 {label}
@@ -51,13 +51,13 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
 
           {/* Middle Section */}
           <div className="flex items-center justify-center px-4">
-            <p className="text-3xl sm:text-6xl font-bold tabular-nums tracking-tight text-foreground leading-none">
+            <p className="text-4xl sm:text-6xl font-bold tabular-nums tracking-tight text-foreground leading-none">
               {current}
             </p>
           </div>
 
           {/* Bottom Section */}
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex-wrap w-full flex justify-center items-center gap-3 text-[8px] sm:text-[10px] font-medium tabular-nums">
+          <div className="px-3 sm:px-5 pb-3 sm:pb-5 flex-wrap w-full flex justify-center items-center gap-3 text-[8px] sm:text-[10px] font-medium tabular-nums">
             {rates.map((rate, i) => (
               <Tooltip key={i}>
                 <TooltipTrigger asChild>
