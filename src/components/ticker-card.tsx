@@ -21,7 +21,7 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
           {/* Top Section */}
           <div className="px-4 sm:px-5 py-3 sm:py-4 w-full">
             <div className="flex justify-between items-start w-full gap-2">
-              <p className="text-[10px] sm:text-sm font-bold text-muted-foreground uppercase tracking-wider leading-tight">
+              <p className="text-[8px] sm:text-sm font-bold text-muted-foreground uppercase tracking-wider leading-tight">
                 {label}
               </p>
 
@@ -36,7 +36,7 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
 
                 <span
                   className={cn(
-                    "text-[10px] sm:text-sm font-semibold tabular-nums leading-none",
+                    "text-[8px] sm:text-sm font-semibold tabular-nums leading-none",
                     isFlat
                       ? "text-muted-foreground"
                       : isUp
@@ -51,13 +51,13 @@ export function TickerCard({ticker}: {ticker: Ticker}) {
 
           {/* Middle Section */}
           <div className="flex items-center justify-center px-4">
-            <p className="text-5xl sm:text-6xl font-bold tabular-nums tracking-tight text-foreground leading-none">
+            <p className="text-3xl sm:text-6xl font-bold tabular-nums tracking-tight text-foreground leading-none">
               {current}
             </p>
           </div>
 
           {/* Bottom Section */}
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex-wrap w-full flex justify-center items-center gap-3 text-[9px] sm:text-[10px] font-medium tabular-nums">
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex-wrap w-full flex justify-center items-center gap-3 text-[8px] sm:text-[10px] font-medium tabular-nums">
             {rates.map((rate, i) => (
               <Tooltip key={i}>
                 <TooltipTrigger asChild>
