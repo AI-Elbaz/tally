@@ -39,16 +39,35 @@ Track events, not streaks. A minimalist habit tracker built to help you monitor 
 
 ### Health Score
 
-The score calculates your "running average" across different timeframes (Week, Month, Year). It gives more weight to recent behavior to reflect your current pace accurately.
+The score is a smooth decay curve calculated from a weighted daily rate across all tracked periods:
 
-- 100: Perfect (0 events)
-- 80-99: Excellent
-- 50-79: Good
-- 0-49: Critical
+```
+score = 100 / (1 + 50 × averageDailyRate)
+```
+
+Week and Month are weighted ×2 versus Year, since recent behavior is more relevant. The "Today" period is excluded from the score — a single day is too noisy to be meaningful.
+
+| Daily Rate | Score | Label     |
+|------------|-------|-----------|
+| 0.00       | 100   | Excellent |
+| 0.02       | 91    | Excellent |
+| 0.10       | 67    | Good      |
+| 0.50       | 29    | Fair      |
+| 1.00       | 17    | Poor      |
+
+Score thresholds: ≥90 Excellent, ≥70 Good, ≥40 Fair, <40 Poor.
 
 ### Rates
 
-The app displays rates (per day, per week, per month) based on the time elapsed in the current period. This helps you visualize the intensity of your current habits immediately.
+Rates use fixed full-period divisors regardless of how much of the period has elapsed. This reflects your projected pace if the current count continued at the same frequency.
+
+| Period | Divisors used         |
+|--------|-----------------------|
+| Week   | Days elapsed (Sat–Fri, week starts Saturday) |
+| Month  | ÷30 (day), ÷4 (week)  |
+| Year   | ÷365 (day), ÷52 (week), ÷12 (month) |
+
+The week rate is the only one using elapsed time, since projecting a full 7-day week from day 1 would be misleading.
 
 ## Contributing
 
