@@ -261,6 +261,65 @@ function SummaryStats({
   );
 }
 
+// New Component for All Events Stats
+function AllEventsStats({
+  chartData,
+  eventTypes,
+}: {
+  chartData: Record<string, string | number>[];
+  eventTypes: EventType[];
+}) {
+  const stats = useMemo(() => {
+    // Calculate total events per bucket (row) across all types
+    const totalEventsPerBucket = chartData.map(row => {
+      return eventTypes.reduce(
+        (sum, t) => sum + (Number(row[`${t.id}_count`]) || 0),
+        0,
+      );
+    });
+
+    const total = totalEventsPerBucket.reduce((a, b) => a + b, 0);
+    const avg = total / (totalEventsPerBucket.length || 1);
+    const max = Math.max(...totalEventsPerBucket, 0);
+
+    return {total, avg, max};
+  }, [chartData, eventTypes]);
+
+  return (
+    <div className="col-span-2 rounded-lg border bg-muted/30 px-4 py-2 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <div className="h-2 w-2 rounded-full bg-muted-foreground/50" />
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          All Events
+        </span>
+      </div>
+
+      <div className="flex items-baseline gap-4">
+        <div className="text-right">
+          <p className="text-lg font-bold tabular-nums text-foreground leading-none">
+            {stats.total}
+          </p>
+          <p className="text-[9px] text-muted-foreground mt-0.5">total</p>
+        </div>
+        <div className="h-6 w-px bg-border shrink-0" />
+        <div className="text-right">
+          <p className="text-sm font-semibold tabular-nums text-foreground leading-none">
+            {stats.avg.toFixed(1)}
+          </p>
+          <p className="text-[9px] text-muted-foreground mt-0.5">avg</p>
+        </div>
+        <div className="h-6 w-px bg-border shrink-0" />
+        <div className="text-right">
+          <p className="text-sm font-semibold tabular-nums text-foreground leading-none">
+            {stats.max}
+          </p>
+          <p className="text-[9px] text-muted-foreground mt-0.5">peak</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChartContent({
   chartData,
   eventTypes,
@@ -518,7 +577,13 @@ export function ChartDrawer({
               </div>
             </div>
           </DrawerHeader>
+
+          <div className="grid grid-cols-2 gap-2 px-4 w-full">
+            <AllEventsStats chartData={chartData} eventTypes={eventTypes} />
+          </div>
+
           <SummaryStats chartData={chartData} eventTypes={eventTypes} />
+
           <ChartContent
             chartData={chartData}
             eventTypes={eventTypes}
