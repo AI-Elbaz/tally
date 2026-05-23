@@ -1,4 +1,4 @@
-import {useMemo} from "react";
+import React, {useMemo} from "react";
 import {
   startOfDay,
   endOfDay,
@@ -18,10 +18,12 @@ import {
 } from "date-fns";
 import {
   Bar,
-  BarChart,
   CartesianGrid,
   XAxis,
   YAxis,
+  ReferenceLine,
+  Line,
+  ComposedChart,
   type TooltipContentProps,
 } from "recharts";
 
@@ -46,11 +48,12 @@ import type {PeriodKey} from "@/configs";
 const PERIOD_CONFIG = {
   daily: {
     label: "Daily view",
-    subtitle: "Last 14 days",
+    subtitle: "Last 30 days",
+    periodLabel: "day",
     getBuckets: () => {
       const today = new Date();
-      return Array.from({length: 14}, (_, i) => {
-        const day = subDays(today, 13 - i);
+      return Array.from({length: 30}, (_, i) => {
+        const day = subDays(today, 29 - i);
         return {
           label: format(day, "MMM d"),
           start: startOfDay(day),
@@ -61,11 +64,12 @@ const PERIOD_CONFIG = {
   },
   weekly: {
     label: "Weekly view",
-    subtitle: "Last 12 weeks",
+    subtitle: "Last 24 weeks",
+    periodLabel: "week",
     getBuckets: () => {
       const today = new Date();
-      return Array.from({length: 12}, (_, i) => {
-        const week = subWeeks(today, 11 - i);
+      return Array.from({length: 24}, (_, i) => {
+        const week = subWeeks(today, 23 - i);
         const start = startOfWeek(week, {weekStartsOn: 6});
         return {
           label: format(start, "MMM d"),
@@ -77,13 +81,14 @@ const PERIOD_CONFIG = {
   },
   monthly: {
     label: "Monthly view",
-    subtitle: "Last 12 months",
+    subtitle: "Last 24 months",
+    periodLabel: "month",
     getBuckets: () => {
       const today = new Date();
-      return Array.from({length: 12}, (_, i) => {
-        const month = subMonths(today, 11 - i);
+      return Array.from({length: 24}, (_, i) => {
+        const month = subMonths(today, 23 - i);
         return {
-          label: format(month, "MMM"),
+          label: format(month, "MMM yy"),
           start: startOfMonth(month),
           end: endOfMonth(month),
         };
@@ -92,11 +97,12 @@ const PERIOD_CONFIG = {
   },
   yearly: {
     label: "Yearly view",
-    subtitle: "Last 5 years",
+    subtitle: "Last 10 years",
+    periodLabel: "year",
     getBuckets: () => {
       const today = new Date();
-      return Array.from({length: 5}, (_, i) => {
-        const year = subYears(today, 4 - i);
+      return Array.from({length: 10}, (_, i) => {
+        const year = subYears(today, 9 - i);
         return {
           label: format(year, "yyyy"),
           start: startOfYear(year),
@@ -110,64 +116,154 @@ const PERIOD_CONFIG = {
 const CustomTooltipContent = ({
   active,
   payload,
+  label,
 }: TooltipContentProps<ValueType, NameType>) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
-        <p className="text-sm font-medium text-foreground mb-2 border-b pb-1">
-          {payload[0]?.payload?.label}
-        </p>
-        <div className="space-y-1.5">
-          {payload.map((entry, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="h-2.5 w-2.5 rounded-sm"
-                  style={{backgroundColor: entry.color}}
-                />
-                <span className="text-muted-foreground font-medium">
-                  {entry.name}
+  if (!active || !payload?.length) return null;
+
+  const counts = payload.filter(p => p.dataKey?.toString().endsWith("_count"));
+  const averages = payload.filter(p => p.dataKey?.toString().endsWith("_avg"));
+
+  return (
+    <div className="rounded-lg border bg-background px-3 py-2 shadow-md min-w-36">
+      <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+        {label}
+      </p>
+
+      <div className="space-y-1.5">
+        {counts.map((entry, index) => (
+          <div
+            key={`count-${index}`}
+            className="flex items-center justify-between gap-6 text-xs">
+            <div className="flex items-center gap-1.5">
+              <div
+                className="h-2 w-2 rounded-sm shrink-0"
+                style={{backgroundColor: entry.color}}
+              />
+              <span className="text-muted-foreground">{entry.name}</span>
+            </div>
+            <span className="font-semibold tabular-nums text-foreground">
+              {entry.value}
+            </span>
+          </div>
+        ))}
+
+        {averages.length > 0 && (
+          <div className="pt-1.5 mt-0.5 border-t border-dashed border-border">
+            <p className="text-[10px] text-muted-foreground/70 mb-1 uppercase tracking-wide">
+              7-period avg
+            </p>
+            {averages.map((entry, index) => (
+              <div
+                key={`avg-${index}`}
+                className="flex items-center justify-between gap-6 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className="h-px w-3 shrink-0"
+                    style={{backgroundColor: entry.color}}
+                  />
+                  <span className="text-muted-foreground/70">
+                    {entry.name?.toString().replace(" (Avg)", "")}
+                  </span>
+                </div>
+                <span className="tabular-nums text-muted-foreground/70">
+                  {typeof entry.value === "number"
+                    ? entry.value.toFixed(1)
+                    : entry.value}
                 </span>
               </div>
-              <span className="font-semibold tabular-nums text-foreground">
-                {entry.value}
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
-    );
-  }
-  return null;
+    </div>
+  );
 };
+
+function SummaryStats({
+  chartData,
+  eventTypes,
+  periodLabel,
+}: {
+  chartData: Record<string, string | number>[];
+  eventTypes: EventType[];
+  periodLabel: string;
+}) {
+  const stats = useMemo(() => {
+    return eventTypes.map(t => {
+      const counts = chartData.map(row => Number(row[`${t.id}_count`]) || 0);
+      const total = counts.reduce((a, b) => a + b, 0);
+      const avg = total / (counts.length || 1);
+      const max = Math.max(...counts);
+      return {type: t, total, avg, max};
+    });
+  }, [chartData, eventTypes]);
+
+  return (
+    <div className="flex gap-3 px-6 flex-wrap">
+      {stats.map(({type, total, avg, max}) => (
+        <div
+          key={type.id}
+          className="flex-1 min-w-28 rounded-lg border bg-muted/30 px-4 py-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <div
+              className="h-2 w-2 rounded-full shrink-0"
+              style={{backgroundColor: type.color}}
+            />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+              {type.label}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-3">
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-foreground leading-none">
+                {total}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">total</p>
+            </div>
+            <div className="h-8 w-px bg-border" />
+            <div>
+              <p className="text-lg font-semibold tabular-nums text-foreground leading-none">
+                {avg.toFixed(1)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                per {periodLabel}
+              </p>
+            </div>
+            <div className="h-8 w-px bg-border" />
+            <div>
+              <p className="text-lg font-semibold tabular-nums text-foreground leading-none">
+                {max}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">peak</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function ChartContent({
   chartData,
   eventTypes,
+  periodAverages,
 }: {
   chartData: Record<string, string | number>[];
   eventTypes: EventType[];
+  periodAverages: Record<string, number>;
 }) {
   const chartConfig = Object.fromEntries(
-    eventTypes.map(t => [
-      t.id,
-      {
-        label: t.label,
-        color: t.color,
-      },
-    ]),
+    eventTypes.map(t => [t.id, {label: t.label, color: t.color}]),
   );
 
   return (
     <div className="w-full px-4">
       <AspectRatio ratio={16 / 9} className="w-full">
         <ChartContainer config={chartConfig} className="w-full h-full">
-          <BarChart
+          <ComposedChart
             accessibilityLayer
             data={chartData}
-            margin={{top: 10, right: 0, left: -20, bottom: 0}}>
+            margin={{top: 20, right: 0, left: -20, bottom: 0}}>
             <CartesianGrid
               vertical={false}
               strokeDasharray="4 4"
@@ -178,33 +274,48 @@ function ChartContent({
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              className="text-xs text-muted-foreground"
+              className="text-[10px] text-muted-foreground"
               interval="preserveStartEnd"
             />
             <YAxis
               allowDecimals={false}
               tickLine={false}
               axisLine={false}
-              className="text-xs text-muted-foreground"
+              className="text-[10px] text-muted-foreground"
             />
             <ChartTooltip
-              cursor={{fill: "hsl(var(--muted))", fillOpacity: 0.3}}
+              cursor={{fill: "hsl(var(--muted))", fillOpacity: 0.1}}
               content={CustomTooltipContent}
             />
-            {eventTypes.map((t, i) => (
-              <Bar
-                key={t.id}
-                name={t.label}
-                dataKey={t.id}
-                stackId="a"
-                fill={`var(--color-${t.id})`}
-                radius={
-                  i === eventTypes.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
-                }
-                fillOpacity={0.9}
-              />
+
+            {eventTypes.map(t => (
+              <React.Fragment key={t.id}>
+                <Bar
+                  name={t.label}
+                  dataKey={`${t.id}_count`}
+                  stackId="a"
+                  fill={`var(--color-${t.id})`}
+                  fillOpacity={0.8}
+                  maxBarSize={40}
+                />
+                <Line
+                  name={`${t.label} (Avg)`}
+                  dataKey={`${t.id}_avg`}
+                  stroke={`var(--color-${t.id})`}
+                  strokeWidth={1.5}
+                  dot={false}
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+                <ReferenceLine
+                  y={periodAverages[t.id]}
+                  stroke={`var(--color-${t.id})`}
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.4}
+                />
+              </React.Fragment>
             ))}
-          </BarChart>
+          </ComposedChart>
         </ChartContainer>
       </AspectRatio>
     </div>
@@ -224,11 +335,13 @@ export function ChartDrawer({
 
   const chartData = useMemo(() => {
     if (!config) return [];
-    return config.getBuckets().map(bucket => {
+    const buckets = config.getBuckets();
+
+    return buckets.map((bucket, index) => {
       const row: Record<string, string | number> = {label: bucket.label};
 
       eventTypes.forEach(t => {
-        row[t.id] = events.filter(e => {
+        const count = events.filter(e => {
           try {
             return (
               e.type === t.id &&
@@ -241,10 +354,56 @@ export function ChartDrawer({
             return false;
           }
         }).length;
+
+        row[`${t.id}_count`] = count;
       });
+
+      eventTypes.forEach(t => {
+        let sum = 0;
+        let validPoints = 0;
+        const windowSize = 7;
+
+        for (let w = 0; w < windowSize; w++) {
+          const targetIndex = index - w;
+          if (targetIndex >= 0) {
+            const targetBucket = buckets[targetIndex];
+            const wCount = events.filter(e => {
+              try {
+                return (
+                  e.type === t.id &&
+                  isWithinInterval(parseISO(e.datetime), {
+                    start: targetBucket.start,
+                    end: targetBucket.end,
+                  })
+                );
+              } catch {
+                return false;
+              }
+            }).length;
+
+            sum += wCount;
+            validPoints++;
+          }
+        }
+
+        row[`${t.id}_avg`] = validPoints > 0 ? sum / validPoints : 0;
+      });
+
       return row;
     });
   }, [config, events, eventTypes]);
+
+  const periodAverages = useMemo(() => {
+    const avgs: Record<string, number> = {};
+    eventTypes.forEach(t => {
+      const total = chartData.reduce(
+        (sum, row) => sum + (Number(row[`${t.id}_count`]) || 0),
+        0,
+      );
+      avgs[t.id] = total / (chartData.length || 1);
+    });
+    return avgs;
+  }, [chartData, eventTypes]);
 
   if (!config) return null;
 
@@ -252,11 +411,20 @@ export function ChartDrawer({
     <Drawer>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent className="pb-10 max-w-5xl mx-auto focus-visible:outline-none">
-        <DrawerHeader className="mb-2 px-6">
+        <DrawerHeader className="mb-3 px-6">
           <DrawerTitle className="text-2xl">{config.label}</DrawerTitle>
           <p className="text-muted-foreground text-sm">{config.subtitle}</p>
         </DrawerHeader>
-        <ChartContent chartData={chartData} eventTypes={eventTypes} />
+        <SummaryStats
+          chartData={chartData}
+          eventTypes={eventTypes}
+          periodLabel={config.periodLabel}
+        />
+        <ChartContent
+          chartData={chartData}
+          eventTypes={eventTypes}
+          periodAverages={periodAverages}
+        />
       </DrawerContent>
     </Drawer>
   );
