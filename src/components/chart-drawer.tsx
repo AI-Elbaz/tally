@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React, {useState, useMemo, useCallback} from "react";
 import {
   startOfDay,
   endOfDay,
@@ -15,6 +15,11 @@ import {
   format,
   isWithinInterval,
   parseISO,
+  min,
+  differenceInDays,
+  differenceInWeeks,
+  differenceInMonths,
+  differenceInYears,
 } from "date-fns";
 import {
   Bar,
@@ -33,27 +38,42 @@ import type {
 } from "recharts/types/component/DefaultTooltipContent";
 
 import {ChartContainer, ChartTooltip} from "@/components/ui/chart";
-import {AspectRatio} from "@/components/ui/aspect-ratio";
 import {useStore} from "../store";
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "./ui/drawer";
+import {Button} from "@/components/ui/button";
+import {ChevronLeft, Undo2} from "lucide-react";
 import type {EventType} from "@/types";
 import type {PeriodKey} from "@/configs";
 
-const PERIOD_CONFIG = {
+type BucketConfig = {
+  label: string;
+  periodLabel: string;
+  loadStep: number;
+  initialLength: number;
+  getBuckets: (count: number) => Array<{
+    label: string;
+    start: Date;
+    end: Date;
+  }>;
+};
+
+const PERIOD_CONFIG: Record<PeriodKey, BucketConfig> = {
   daily: {
     label: "Daily view",
-    subtitle: "Last 30 days",
     periodLabel: "day",
-    getBuckets: () => {
+    loadStep: 30,
+    initialLength: 7,
+    getBuckets: (count: number) => {
       const today = new Date();
-      return Array.from({length: 30}, (_, i) => {
-        const day = subDays(today, 29 - i);
+      return Array.from({length: count}, (_, i) => {
+        const day = subDays(today, count - 1 - i);
         return {
           label: format(day, "MMM d"),
           start: startOfDay(day),
@@ -64,12 +84,13 @@ const PERIOD_CONFIG = {
   },
   weekly: {
     label: "Weekly view",
-    subtitle: "Last 24 weeks",
     periodLabel: "week",
-    getBuckets: () => {
+    loadStep: 12,
+    initialLength: 4,
+    getBuckets: (count: number) => {
       const today = new Date();
-      return Array.from({length: 24}, (_, i) => {
-        const week = subWeeks(today, 23 - i);
+      return Array.from({length: count}, (_, i) => {
+        const week = subWeeks(today, count - 1 - i);
         const start = startOfWeek(week, {weekStartsOn: 6});
         return {
           label: format(start, "MMM d"),
@@ -81,12 +102,13 @@ const PERIOD_CONFIG = {
   },
   monthly: {
     label: "Monthly view",
-    subtitle: "Last 24 months",
     periodLabel: "month",
-    getBuckets: () => {
+    loadStep: 12,
+    initialLength: 6,
+    getBuckets: (count: number) => {
       const today = new Date();
-      return Array.from({length: 24}, (_, i) => {
-        const month = subMonths(today, 23 - i);
+      return Array.from({length: count}, (_, i) => {
+        const month = subMonths(today, count - 1 - i);
         return {
           label: format(month, "MMM yy"),
           start: startOfMonth(month),
@@ -97,12 +119,13 @@ const PERIOD_CONFIG = {
   },
   yearly: {
     label: "Yearly view",
-    subtitle: "Last 10 years",
     periodLabel: "year",
-    getBuckets: () => {
+    loadStep: 5,
+    initialLength: 2,
+    getBuckets: (count: number) => {
       const today = new Date();
-      return Array.from({length: 10}, (_, i) => {
-        const year = subYears(today, 9 - i);
+      return Array.from({length: count}, (_, i) => {
+        const year = subYears(today, count - 1 - i);
         return {
           label: format(year, "yyyy"),
           start: startOfYear(year),
@@ -128,7 +151,6 @@ const CustomTooltipContent = ({
       <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
         {label}
       </p>
-
       <div className="space-y-1.5">
         {counts.map((entry, index) => (
           <div
@@ -182,59 +204,55 @@ const CustomTooltipContent = ({
 function SummaryStats({
   chartData,
   eventTypes,
-  periodLabel,
 }: {
   chartData: Record<string, string | number>[];
   eventTypes: EventType[];
-  periodLabel: string;
 }) {
   const stats = useMemo(() => {
     return eventTypes.map(t => {
       const counts = chartData.map(row => Number(row[`${t.id}_count`]) || 0);
       const total = counts.reduce((a, b) => a + b, 0);
       const avg = total / (counts.length || 1);
-      const max = Math.max(...counts);
-      return {type: t, total, avg, max};
+      const maxVal = Math.max(...counts);
+      return {type: t, total, avg, max: maxVal};
     });
   }, [chartData, eventTypes]);
 
   return (
-    <div className="flex gap-3 px-6 flex-wrap">
+    <div className="grid grid-cols-2 gap-2 px-4 w-full">
       {stats.map(({type, total, avg, max}) => (
         <div
           key={type.id}
-          className="flex-1 min-w-28 rounded-lg border bg-muted/30 px-4 py-3">
-          <div className="flex items-center gap-1.5 mb-2">
+          className="flex-1 min-w-0 rounded-lg border bg-muted/30 px-3 py-2">
+          <div className="flex items-center gap-1.5 mb-1">
             <div
               className="h-2 w-2 rounded-full shrink-0"
               style={{backgroundColor: type.color}}
             />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate">
               {type.label}
             </span>
           </div>
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-baseline gap-2">
             <div>
-              <p className="text-2xl font-bold tabular-nums text-foreground leading-none">
+              <p className="text-lg font-bold tabular-nums text-foreground leading-none">
                 {total}
               </p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">total</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">total</p>
             </div>
-            <div className="h-8 w-px bg-border" />
+            <div className="h-6 w-px bg-border shrink-0" />
             <div>
-              <p className="text-lg font-semibold tabular-nums text-foreground leading-none">
+              <p className="text-sm font-semibold tabular-nums text-foreground leading-none">
                 {avg.toFixed(1)}
               </p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                per {periodLabel}
-              </p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">avg</p>
             </div>
-            <div className="h-8 w-px bg-border" />
+            <div className="h-6 w-px bg-border shrink-0" />
             <div>
-              <p className="text-lg font-semibold tabular-nums text-foreground leading-none">
+              <p className="text-sm font-semibold tabular-nums text-foreground leading-none">
                 {max}
               </p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">peak</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">peak</p>
             </div>
           </div>
         </div>
@@ -257,67 +275,69 @@ function ChartContent({
   );
 
   return (
-    <div className="w-full px-4">
-      <AspectRatio ratio={16 / 9} className="w-full">
-        <ChartContainer config={chartConfig} className="w-full h-full">
-          <ComposedChart
-            accessibilityLayer
-            data={chartData}
-            margin={{top: 20, right: 0, left: -20, bottom: 0}}>
-            <CartesianGrid
-              vertical={false}
-              strokeDasharray="4 4"
-              className="stroke-muted"
-            />
-            <XAxis
-              dataKey="label"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              className="text-[10px] text-muted-foreground"
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              allowDecimals={false}
-              tickLine={false}
-              axisLine={false}
-              className="text-[10px] text-muted-foreground"
-            />
-            <ChartTooltip
-              cursor={{fill: "hsl(var(--muted))", fillOpacity: 0.1}}
-              content={CustomTooltipContent}
-            />
+    <div className="w-full -mx-4 sm:mx-0 sm:px-4 pb-4">
+      <ChartContainer config={chartConfig} className="w-full h-full p-0">
+        <ComposedChart
+          accessibilityLayer
+          data={chartData}
+          // left: -10 pulls chart behind the Y axis to remove whitespace
+          margin={{top: 10, right: 0, left: -10, bottom: 0}}>
+          <CartesianGrid
+            vertical={false}
+            strokeDasharray="4 4"
+            className="stroke-muted"
+          />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            className="text-[10px] text-muted-foreground"
+            interval="preserveStartEnd"
+          />
 
-            {eventTypes.map(t => (
-              <React.Fragment key={t.id}>
-                <Bar
-                  name={t.label}
-                  dataKey={`${t.id}_count`}
-                  stackId="a"
-                  fill={`var(--color-${t.id})`}
-                  fillOpacity={0.8}
-                  maxBarSize={40}
-                />
-                <Line
-                  name={`${t.label} (Avg)`}
-                  dataKey={`${t.id}_avg`}
-                  stroke={`var(--color-${t.id})`}
-                  strokeWidth={1.5}
-                  dot={false}
-                  activeDot={false}
-                  isAnimationActive={false}
-                />
-                <ReferenceLine
-                  y={periodAverages[t.id]}
-                  stroke={`var(--color-${t.id})`}
-                  strokeDasharray="3 3"
-                  strokeOpacity={0.4}
-                />
-              </React.Fragment>
-            ))}
-          </ComposedChart>
-        </ChartContainer>
-      </AspectRatio>
+          <YAxis
+            // Keep the axis visible
+            tickLine={false}
+            axisLine={false}
+            allowDecimals={false}
+            className="text-[10px] text-muted-foreground"
+          />
+
+          <ChartTooltip
+            cursor={{fill: "hsl(var(--muted))", fillOpacity: 0.1}}
+            content={CustomTooltipContent}
+          />
+
+          {eventTypes.map(t => (
+            <React.Fragment key={t.id}>
+              <Bar
+                name={t.label}
+                dataKey={`${t.id}_count`}
+                stackId="a"
+                fill={`var(--color-${t.id})`}
+                fillOpacity={0.8}
+                maxBarSize={40}
+              />
+              <Line
+                name={`${t.label} (Avg)`}
+                dataKey={`${t.id}_avg`}
+                stroke={`var(--color-${t.id})}`}
+                strokeWidth={1.5}
+                dot={false}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+              <ReferenceLine
+                y={periodAverages[t.id]}
+                stroke={`var(--color-${t.id})}`}
+                strokeDasharray="3 3"
+                strokeOpacity={0.4}
+              />
+            </React.Fragment>
+          ))}
+        </ComposedChart>
+      </ChartContainer>
     </div>
   );
 }
@@ -333,9 +353,49 @@ export function ChartDrawer({
   const eventTypes = useStore(s => s.eventTypes);
   const config = PERIOD_CONFIG[period];
 
-  const chartData = useMemo(() => {
+  const [visibleCount, setVisibleCount] = useState<number>(
+    config?.initialLength || 7,
+  );
+
+  const maxPossibleCount = useMemo(() => {
+    if (events.length === 0) return config?.initialLength || 7;
+
+    const dates = events
+      .map(e => {
+        try {
+          return parseISO(e.datetime);
+        } catch {
+          return null;
+        }
+      })
+      .filter((d): d is Date => d !== null && !isNaN(d.getTime()));
+
+    if (dates.length === 0) return config?.initialLength || 7;
+
+    const oldestDate = min(dates);
+    const today = new Date();
+
+    switch (period) {
+      case "daily":
+        return differenceInDays(today, oldestDate) + 1;
+      case "weekly":
+        return differenceInWeeks(today, oldestDate) + 1;
+      case "monthly":
+        return differenceInMonths(today, oldestDate) + 1;
+      case "yearly":
+        return differenceInYears(today, oldestDate) + 1;
+      default:
+        return config?.initialLength || 7;
+    }
+  }, [events, period, config]);
+
+  const buckets = useMemo(() => {
     if (!config) return [];
-    const buckets = config.getBuckets();
+    return config.getBuckets(visibleCount);
+  }, [config, visibleCount]);
+
+  const chartData = useMemo(() => {
+    if (buckets.length === 0) return [];
 
     return buckets.map((bucket, index) => {
       const row: Record<string, string | number> = {label: bucket.label};
@@ -354,7 +414,6 @@ export function ChartDrawer({
             return false;
           }
         }).length;
-
         row[`${t.id}_count`] = count;
       });
 
@@ -391,7 +450,7 @@ export function ChartDrawer({
 
       return row;
     });
-  }, [config, events, eventTypes]);
+  }, [buckets, events, eventTypes]);
 
   const periodAverages = useMemo(() => {
     const avgs: Record<string, number> = {};
@@ -405,26 +464,67 @@ export function ChartDrawer({
     return avgs;
   }, [chartData, eventTypes]);
 
+  const handleLoadMore = useCallback(() => {
+    if (!config) return;
+    setVisibleCount(prev => {
+      const next = prev + config.loadStep;
+      return Math.min(next, maxPossibleCount);
+    });
+  }, [config, maxPossibleCount]);
+
+  const handleReset = useCallback(() => {
+    if (config) setVisibleCount(config.initialLength);
+  }, [config]);
+
   if (!config) return null;
+
+  const canLoadMore = visibleCount < maxPossibleCount;
+  const isZoomedOut = visibleCount > config.initialLength;
 
   return (
     <Drawer>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent className="pb-10 max-w-5xl mx-auto focus-visible:outline-none">
-        <DrawerHeader className="mb-3 px-6">
-          <DrawerTitle className="text-2xl">{config.label}</DrawerTitle>
-          <p className="text-muted-foreground text-sm">{config.subtitle}</p>
-        </DrawerHeader>
-        <SummaryStats
-          chartData={chartData}
-          eventTypes={eventTypes}
-          periodLabel={config.periodLabel}
-        />
-        <ChartContent
-          chartData={chartData}
-          eventTypes={eventTypes}
-          periodAverages={periodAverages}
-        />
+      <DrawerContent className="pb-8 w-full max-w-5xl mx-auto focus-visible:outline-none overflow-y-hidden rounded-t-2xl">
+        <div className="overflow-y-auto h-full space-y-4">
+          <DrawerHeader className="px-4 py-2 space-y-2">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex flex-col gap-2 mb-0.5">
+                <DrawerTitle className="text-lg text-left font-semibold truncate">
+                  {config.label}
+                </DrawerTitle>
+                <DrawerDescription className="text-left">
+                  Showing last {visibleCount} {config.periodLabel}
+                  {visibleCount > 1 ? "s" : ""}
+                  {maxPossibleCount > visibleCount &&
+                    ` (of ${maxPossibleCount} total)`}
+                </DrawerDescription>
+              </div>
+
+              <div className="flex flex-row gap-2 items-center justify-end">
+                {isZoomedOut && (
+                  <Button variant="ghost" size="sm" onClick={handleReset}>
+                    <Undo2 />
+                    Reset
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!canLoadMore}
+                  onClick={handleLoadMore}>
+                  <ChevronLeft />
+                  Load More
+                </Button>
+              </div>
+            </div>
+          </DrawerHeader>
+          <SummaryStats chartData={chartData} eventTypes={eventTypes} />
+          <ChartContent
+            chartData={chartData}
+            eventTypes={eventTypes}
+            periodAverages={periodAverages}
+          />
+        </div>
       </DrawerContent>
     </Drawer>
   );
